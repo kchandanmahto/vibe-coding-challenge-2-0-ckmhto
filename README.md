@@ -1,29 +1,29 @@
-# Academy Desk 🏆
+# Academy Desk
 
-**Sports Academy Management System**
-
-Academy Desk is a web application designed to digitize sports academy operations.
+A mobile-first sports academy management system built with Next.js, TypeScript and MongoDB.
 
 ### Features
-- Player Management
-- Practice & Attendance Tracking
-- Match Management & Scoring
-- Player Readiness System
-- Coach, Scout & Player Dashboards
-- Performance Analytics
+- Player, Coach and Scout management
+- Practice sessions and attendance
+- Match records and player performance
+- Automatic player readiness calculation
+- Role-based dashboards and access control
+- Analytics and reporting
 
 ### Tech Stack
-- Frontend: Next.js, TypeScript, Tailwind CSS
-- Backend: Python, FastAPI
-- Database: MongoDB Atlas
-- Deployment: Vercel & Render
+- Next.js, TypeScript
+- Tailwind CSS
+- MongoDB Atlas
+- Next.js Route Handlers
 
-### Team
-**CKMHTO**
+### Getting Started
+
+```bash
+npm install
+npm run dev
+```
+
+Open http://localhost:3000
 
 ### Project Status
-Planning & Initial Setup.
-
----
-
-Built with dedication by Team CKMHTO.
+Under Development 🚀
