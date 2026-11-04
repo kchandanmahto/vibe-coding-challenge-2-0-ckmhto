@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
+import { BrandLogo } from "@/components/BrandLogo";
 
 interface LoginErrors {
   email?: string;
@@ -48,7 +49,7 @@ export function LoginPanel() {
     <section className="flex min-h-[calc(100vh-13rem)] items-center justify-center px-5 py-10 sm:min-h-[calc(100vh-16rem)] sm:px-10 lg:min-h-screen">
       <div className="w-full max-w-[430px]">
         <Link href="/" className="mb-10 flex items-center gap-3 lg:hidden" aria-label="Academy Desk home">
-          <span className="grid h-11 w-11 place-items-center rounded-xl bg-[#2563eb] text-sm font-black text-white">AD</span>
+          <BrandLogo size={44} />
           <span>
             <span className="block font-semibold text-slate-900">Academy Desk</span>
             <span className="block text-[10px] uppercase tracking-[0.18em] text-slate-400">Sports management</span>

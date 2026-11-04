@@ -53,7 +53,6 @@ export function PlayerAttendanceManagement() {
     return [...records].sort((a, b) => sort === "Newest first" ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date));
   }, [query, sport, status, from, to, sort]);
 
-  useEffect(() => setPage(1), [query, sport, status, from, to, sort]);
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
 
@@ -78,6 +77,11 @@ export function PlayerAttendanceManagement() {
     });
   }, []);
 
+  const updateFilter = (setter: (value: string) => void, value: string) => {
+    setter(value);
+    setPage(1);
+  };
+
   return (
     <DashboardShell role="player" title="My attendance" subtitle="View your own attendance records">
       <PageHeader title="My Attendance" description="Attendance history, calendar, and trends" />
@@ -97,15 +101,15 @@ export function PlayerAttendanceManagement() {
 
               <Panel title="Attendance history">
                 <div className="grid gap-3 border-b border-slate-100 p-4 lg:grid-cols-[1fr_repeat(4,minmax(130px,auto))]">
-                  <label className="relative"><span className="sr-only">Search attendance</span><Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search session or sport" className={`${inputClass} w-full pl-9`} /></label>
-                  <label><span className="sr-only">Sport</span><select aria-label="Sport" value={sport} onChange={(event) => setSport(event.target.value)} className={`${inputClass} w-full`}><option>All sports</option>{[...new Set(playerAttendanceRecords.map((record) => record.sport))].map((item) => <option key={item}>{item}</option>)}</select></label>
-                  <label><span className="sr-only">Status</span><select aria-label="Attendance status" value={status} onChange={(event) => setStatus(event.target.value)} className={`${inputClass} w-full`}><option>All statuses</option><option>Present</option><option>Absent</option></select></label>
-                  <label><span className="sr-only">From date</span><input aria-label="From date" type="date" value={from} onChange={(event) => setFrom(event.target.value)} className={`${inputClass} w-full`} /></label>
-                  <label><span className="sr-only">To date</span><input aria-label="To date" type="date" value={to} onChange={(event) => setTo(event.target.value)} className={`${inputClass} w-full`} /></label>
+                  <label className="relative"><span className="sr-only">Search attendance</span><Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" /><input value={query} onChange={(event) => updateFilter(setQuery, event.target.value)} placeholder="Search session or sport" className={`${inputClass} w-full pl-9`} /></label>
+                  <label><span className="sr-only">Sport</span><select aria-label="Sport" value={sport} onChange={(event) => updateFilter(setSport, event.target.value)} className={`${inputClass} w-full`}><option>All sports</option>{[...new Set(playerAttendanceRecords.map((record) => record.sport))].map((item) => <option key={item}>{item}</option>)}</select></label>
+                  <label><span className="sr-only">Status</span><select aria-label="Attendance status" value={status} onChange={(event) => updateFilter(setStatus, event.target.value)} className={`${inputClass} w-full`}><option>All statuses</option><option>Present</option><option>Absent</option></select></label>
+                  <label><span className="sr-only">From date</span><input aria-label="From date" type="date" value={from} onChange={(event) => updateFilter(setFrom, event.target.value)} className={`${inputClass} w-full`} /></label>
+                  <label><span className="sr-only">To date</span><input aria-label="To date" type="date" value={to} onChange={(event) => updateFilter(setTo, event.target.value)} className={`${inputClass} w-full`} /></label>
                 </div>
                 {filtered.length === 0 ? <EmptyState title="No matching records" description="No attendance records match the selected filters." /> : (
                   <>
-                    <div className="flex justify-end border-b border-slate-100 px-4 py-2"><label className="text-xs text-slate-500">Sort <select aria-label="Sort attendance" value={sort} onChange={(event) => setSort(event.target.value)} className="ml-2 rounded-lg border border-slate-200 px-2 py-1 text-sm text-slate-700"><option>Newest first</option><option>Oldest first</option></select></label></div>
+                    <div className="flex justify-end border-b border-slate-100 px-4 py-2"><label className="text-xs text-slate-500">Sort <select aria-label="Sort attendance" value={sort} onChange={(event) => updateFilter(setSort, event.target.value)} className="ml-2 rounded-lg border border-slate-200 px-2 py-1 text-sm text-slate-700"><option>Newest first</option><option>Oldest first</option></select></label></div>
                     <div className="overflow-x-auto">
                       <table className="w-full min-w-[760px] text-left text-sm">
                         <thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="px-5 py-3 font-medium">Session date</th><th className="px-5 py-3 font-medium">Sport</th><th className="px-5 py-3 font-medium">Session</th><th className="px-5 py-3 font-medium">Coach</th><th className="px-5 py-3 font-medium">Status</th><th className="px-5 py-3 font-medium">Remarks</th></tr></thead>

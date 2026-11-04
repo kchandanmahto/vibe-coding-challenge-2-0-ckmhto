@@ -20,6 +20,7 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export type DashboardRole = "head-coach" | "coach" | "player" | "scout";
 
@@ -51,17 +52,17 @@ export const dashboardRoleLinks: Record<DashboardRole, { icon: LucideIcon; label
     { icon: Gauge, label: "Overview", href: "/player" },
     { icon: User, label: "My Profile", href: "/player/profile" },
     { icon: ClipboardCheck, label: "Attendance", href: "/player/attendance" },
-    { icon: Medal, label: "Matches", href: "/player#matches" },
-    { icon: Activity, label: "Performance", href: "/player#performance" },
+    { icon: Medal, label: "Matches", href: "/player/matches" },
+    { icon: Activity, label: "Performance", href: "/player/performance" },
     { icon: ShieldCheck, label: "Readiness", href: "/player#readiness" },
     { icon: Settings, label: "Settings", href: "/player#settings" },
   ],
   scout: [
     { icon: Gauge, label: "Overview", href: "/scout" },
-    { icon: UserRoundCheck, label: "Ready Players", href: "/scout#ready-players" },
+    { icon: UserRoundCheck, label: "Ready Players", href: "/scout/players" },
     { icon: Compass, label: "Player Discovery", href: "/scout#discovery" },
-    { icon: Trophy, label: "Sports", href: "/scout#sports" },
-    { icon: Settings, label: "Settings", href: "/scout#settings" },
+    { icon: Trophy, label: "Sports", href: "/scout/sports" },
+    { icon: Settings, label: "Settings", href: "/scout/settings" },
   ],
 };
 
@@ -86,7 +87,7 @@ export function DashboardSidebar({
     <aside className={`fixed inset-y-0 left-0 z-40 flex w-[248px] flex-col overflow-hidden bg-[#101828] px-3 py-5 text-white transition-[width,transform] duration-300 lg:translate-x-0 ${widthClass} ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
       <Link href="/" onClick={onNavigate} className="mb-6 flex min-h-11 items-center gap-3 px-2">
         <span className="sr-only">Academy Desk home</span>
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#2563eb] text-lg font-black">AD</span>
+        <BrandLogo size={40} variant="icon" priority />
         <span className={`min-w-[150px] whitespace-nowrap transition-opacity ${collapsed ? "lg:opacity-0 lg:pointer-events-none" : "opacity-100"}`}>
           <span className="block font-semibold">Academy Desk</span>
           <span className="text-xs text-slate-400">Sports management</span>

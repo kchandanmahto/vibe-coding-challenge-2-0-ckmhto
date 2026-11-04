@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const links = [
   ["Home", "#home"],
@@ -18,7 +19,7 @@ export function PublicNavbar() {
     <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-[#101828]/95 backdrop-blur">
       <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-5 sm:px-8">
         <Link href="/" className="flex items-center gap-3 text-white" aria-label="Academy Desk home">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#2563eb] text-sm font-black">AD</span>
+          <BrandLogo size={40} priority />
           <span>
             <span className="block font-semibold">Academy Desk</span>
             <span className="block text-[10px] uppercase tracking-[0.18em] text-slate-400">Sports management</span>

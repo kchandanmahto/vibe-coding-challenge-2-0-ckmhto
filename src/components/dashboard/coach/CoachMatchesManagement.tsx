@@ -8,8 +8,45 @@ import { EmptyState, LoadingState, PageHeader } from "../DashboardUI";
 import { Panel, StatCard, StatusBadge } from "../Dashboard";
 import { coachPlayers } from "./coachPlayersData";
 import { coachMatchesMock, type CoachMatch } from "./coachMatchesData";
+import { coachSessionsMock } from "./coachSessionsData";
+import { initialCoachAttendance } from "./coachAttendanceData";
 
 const pageSize = 5;
+const assignedCoach = "Raj Kumar";
+const assignedSports = ["Football", "Athletics"] as const;
+
+type Eligibility = {
+  selectable: boolean;
+  label: "Eligible" | "Absent" | "Not Eligible" | "Attendance Record Unavailable";
+  reason: string;
+};
+
+function getPlayerEligibility(playerId: string, sport: string, sessionId: string): Eligibility {
+  const player = coachPlayers.find((candidate) => candidate.id === playerId);
+  const session = coachSessionsMock.find((candidate) => candidate.id === sessionId);
+  if (!player || !assignedSports.includes(player.sport as typeof assignedSports[number])) {
+    return { selectable: false, label: "Not Eligible", reason: "Player is outside the coach's assigned scope." };
+  }
+  if (player.sport !== sport) {
+    return { selectable: false, label: "Not Eligible", reason: `Player belongs to ${player.sport}, not ${sport}.` };
+  }
+  if (!session || session.sport !== sport || session.coach !== assignedCoach || !assignedSports.includes(session.sport)) {
+    return { selectable: false, label: "Not Eligible", reason: "Selected session is not valid for this sport and coach scope." };
+  }
+  if (!session.playerIds.includes(playerId)) {
+    return { selectable: false, label: "Attendance Record Unavailable", reason: "Player is not part of the selected session." };
+  }
+  const attendance = initialCoachAttendance[sessionId]?.find((record) => record.playerId === playerId)?.status;
+  if (attendance === "Present") return { selectable: true, label: "Eligible", reason: "Present in the selected session." };
+  if (attendance === "Absent") return { selectable: false, label: "Absent", reason: "Player was absent in the selected session." };
+  if (attendance === "Not marked") return { selectable: false, label: "Attendance Record Unavailable", reason: "Attendance has not been marked for this player." };
+  return { selectable: false, label: "Attendance Record Unavailable", reason: "No attendance record exists for this player and session." };
+}
+
+function validSessionId(sessionId: string, sport: string) {
+  const session = coachSessionsMock.find((candidate) => candidate.id === sessionId);
+  return Boolean(session && session.sport === sport && session.coach === assignedCoach && assignedSports.includes(session.sport));
+}
 
 function Modal({ title, onClose, children, wide = false }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
   return <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-3 sm:p-6" onMouseDown={(event) => event.target === event.currentTarget && onClose()}><div role="dialog" aria-modal="true" className={`max-h-[92vh] w-full overflow-y-auto rounded-2xl bg-white shadow-2xl ${wide ? "max-w-4xl" : "max-w-xl"}`}><div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white px-5 py-4"><h2 className="font-semibold text-slate-900">{title}</h2><button type="button" onClick={onClose} aria-label="Close dialog" className="grid h-9 w-9 place-items-center rounded-lg text-slate-500 hover:bg-slate-100"><X className="h-5 w-5" /></button></div>{children}</div></div>;
@@ -48,6 +85,15 @@ export function CoachMatchesManagement() {
   const cancelled = matches.filter((match) => match.status === "Cancelled").length;
 
   const createMatch = (draft: CoachMatch) => {
+    if (!draft.sessionId || !validSessionId(draft.sessionId, draft.sport)) {
+      notify("Match creation blocked: select a valid session for the match sport.");
+      return;
+    }
+    const invalidPlayers = draft.playerIds.filter((playerId) => !getPlayerEligibility(playerId, draft.sport, draft.sessionId ?? "").selectable);
+    if (invalidPlayers.length) {
+      notify("Match creation blocked: one or more players are no longer eligible.");
+      return;
+    }
     setMatches((current) => [draft, ...current]);
     setConfirmCreate(null);
     setCreateOpen(false);
@@ -114,16 +160,17 @@ function MatchForm({ matches, onCancel, onReview }: { matches: CoachMatch[]; onC
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [playerQuery, setPlayerQuery] = useState("");
-  const attendanceBySession: Record<string, Record<string, "Present" | "Absent">> = {
-    "SES-1108": { "AD-1042": "Present", "AD-1088": "Present", "AD-1265": "Absent", "AD-1342": "Present" },
-    "SES-1110": { "AD-1310": "Present", "AD-1396": "Absent" },
-    "SES-1104": { "AD-1042": "Present", "AD-1088": "Present", "AD-1265": "Absent", "AD-1342": "Present" },
-  };
-  const eligiblePlayers = coachPlayers.filter((player) => player.sport === sport && (!playerQuery.trim() || `${player.name} ${player.id}`.toLowerCase().includes(playerQuery.trim().toLowerCase())));
-  const playerEligibility = (playerId: string) => sessionId ? attendanceBySession[sessionId]?.[playerId] ?? "Not Eligible" : "Eligible";
+  const availableSessions = coachSessionsMock.filter((session) =>
+    session.sport === sport && session.coach === assignedCoach && assignedSports.includes(session.sport)
+  );
+  const scopedPlayers = coachPlayers.filter((player) =>
+    assignedSports.includes(player.sport)
+    && (!playerQuery.trim() || `${player.name} ${player.id}`.toLowerCase().includes(playerQuery.trim().toLowerCase()))
+  );
+  const playerEligibility = (playerId: string) => getPlayerEligibility(playerId, sport, sessionId);
   const togglePlayer = (playerId: string) => {
     const eligibility = playerEligibility(playerId);
-    if (eligibility !== "Eligible" && eligibility !== "Present") return;
+    if (!eligibility.selectable) return;
     setSelectedIds((current) => current.includes(playerId) ? current.filter((id) => id !== playerId) : [...current, playerId]);
   };
   const submit = (event: FormEvent<HTMLFormElement>) => {
@@ -133,13 +180,16 @@ function MatchForm({ matches, onCancel, onReview }: { matches: CoachMatch[]; onC
     const matchDate = String(data.get("date") ?? "");
     const time = String(data.get("time") ?? "");
     if (!name || !matchDate || !time) { setError("Match name, date and time are required."); return; }
+    if (!validSessionId(sessionId, sport)) { setError("Select a valid linked session for the match sport."); return; }
     if (!selectedIds.length) { setError("Select at least one eligible player."); return; }
+    const invalidPlayers = selectedIds.filter((playerId) => !playerEligibility(playerId).selectable);
+    if (invalidPlayers.length) { setError("Remove players who are absent, ineligible, or missing an attendance record."); return; }
     if (matches.some((match) => match.name.toLowerCase() === name.toLowerCase() && match.date === matchDate)) { setError("A match with this name and date already exists."); return; }
-    const draft: CoachMatch = { id: `MAT-${3200 + matches.length}`, name, sport, date: matchDate, time, type: String(data.get("type")), opponent: String(data.get("opponent") ?? "").trim(), description: String(data.get("description") ?? "").trim(), status: "Upcoming", playerIds: selectedIds, sessionId: sessionId || undefined, createdAt: "2026-11-04" };
+    const draft: CoachMatch = { id: `MAT-${3200 + matches.length}`, name, sport, date: matchDate, time, type: String(data.get("type")), opponent: String(data.get("opponent") ?? "").trim(), description: String(data.get("description") ?? "").trim(), status: "Upcoming", playerIds: [...selectedIds], sessionId, createdAt: "2026-11-04" };
     onReview(draft);
   };
   const inputClass = "mt-1.5 h-11 w-full rounded-lg border border-slate-200 px-3 text-sm";
-  return <Modal title="Create match" onClose={onCancel} wide><form onSubmit={submit} className="space-y-5 p-5">{error && <div role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}<div className="grid gap-4 sm:grid-cols-2"><label className="text-sm font-medium">Match name *<input name="name" required className={inputClass} /></label><label className="text-sm font-medium">Sport<select value={sport} onChange={(event) => { setSport(event.target.value as "Football" | "Athletics"); setSelectedIds([]); setSessionId(""); }} className={inputClass}><option>Football</option><option>Athletics</option></select></label><label className="text-sm font-medium">Match date *<input name="date" type="date" required className={inputClass} /></label><label className="text-sm font-medium">Match time *<input name="time" type="time" required className={inputClass} /></label><label className="text-sm font-medium">Match type<select name="type" className={inputClass}><option>League</option><option>Tournament</option><option>Trial</option><option>Meet</option><option>Friendly</option></select></label><label className="text-sm font-medium">Opponent<input name="opponent" className={inputClass} /></label><label className="text-sm font-medium sm:col-span-2">Related session<select value={sessionId} onChange={(event) => { setSessionId(event.target.value); setSelectedIds([]); }} className={inputClass}><option value="">No session linked</option>{sport === "Football" ? <><option value="SES-1108">SES-1108 · Football · 04 Nov 2026</option><option value="SES-1104">SES-1104 · Football · 03 Nov 2026</option></> : <option value="SES-1110">SES-1110 · Athletics · 04 Nov 2026</option>}</select></label><label className="text-sm font-medium sm:col-span-2">Notes<textarea name="description" rows={3} className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" /></label></div><div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">The database schema does not define a match-to-session field. Session linking is a frontend preview only; attendance eligibility still follows mock records for the explicitly selected session.</div><fieldset className="rounded-xl border border-slate-200 p-4"><legend className="px-1 text-sm font-semibold">Participating players</legend><label className="relative mb-3 block"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input value={playerQuery} onChange={(event) => setPlayerQuery(event.target.value)} placeholder="Search eligible players" className="h-10 w-full rounded-lg border border-slate-200 pl-9 pr-3 text-sm" /></label>{eligiblePlayers.length ? <div className="grid gap-2 sm:grid-cols-2">{eligiblePlayers.map((player) => { const eligibility = playerEligibility(player.id); const selectable = eligibility === "Eligible" || eligibility === "Present"; return <button type="button" key={player.id} disabled={!selectable} onClick={() => togglePlayer(player.id)} className={`flex items-center justify-between rounded-lg border px-3 py-2 text-left text-sm ${selectedIds.includes(player.id) ? "border-blue-300 bg-blue-50" : "border-slate-200"} disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-70`}><span><strong>{player.name}</strong><span className="block text-xs text-slate-500">{player.id}</span></span><span className={`text-xs font-semibold ${eligibility === "Present" || eligibility === "Eligible" ? "text-emerald-700" : eligibility === "Absent" ? "text-red-700" : "text-slate-500"}`}>{eligibility}</span></button>; })}</div> : <div className="rounded-lg bg-slate-50 p-4 text-sm text-slate-500">No eligible players found for this sport.</div>}</fieldset><div className="flex justify-end gap-3 border-t border-slate-100 pt-5"><button type="button" onClick={onCancel} className="h-10 rounded-lg border border-slate-200 px-4 text-sm font-semibold">Cancel</button><button type="submit" className="h-10 rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white">Review match</button></div></form></Modal>;
+  return <Modal title="Create match" onClose={onCancel} wide><form onSubmit={submit} className="space-y-5 p-5">{error && <div role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}<div className="grid gap-4 sm:grid-cols-2"><label className="text-sm font-medium">Match name *<input name="name" required className={inputClass} /></label><label className="text-sm font-medium">Sport<select value={sport} onChange={(event) => { setSport(event.target.value as "Football" | "Athletics"); setSelectedIds([]); setSessionId(""); }} className={inputClass}><option>Football</option><option>Athletics</option></select></label><label className="text-sm font-medium">Match date *<input name="date" type="date" required className={inputClass} /></label><label className="text-sm font-medium">Match time *<input name="time" type="time" required className={inputClass} /></label><label className="text-sm font-medium">Match type<select name="type" className={inputClass}><option>League</option><option>Tournament</option><option>Trial</option><option>Meet</option><option>Friendly</option></select></label><label className="text-sm font-medium">Opponent<input name="opponent" className={inputClass} /></label>  <label className="text-sm font-medium sm:col-span-2">Related session *<select value={sessionId} onChange={(event) => { setSessionId(event.target.value); setSelectedIds([]); }} className={inputClass}><option value="">Select required session</option>{availableSessions.map((session) => <option key={session.id} value={session.id}>{session.id} · {session.sport} · {new Date(`${session.date}T00:00:00`).toLocaleDateString()}</option>)}</select>{!sessionId && <span className="mt-1.5 block text-xs text-red-600">A linked session is required for match eligibility.</span>}</label><label className="text-sm font-medium sm:col-span-2">Notes<textarea name="description" rows={3} className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" /></label></div><div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">The database schema does not define a match-to-session field. Session linking is a frontend preview only; attendance eligibility still follows mock records for the explicitly selected session.</div><fieldset className="rounded-xl border border-slate-200 p-4"><legend className="px-1 text-sm font-semibold">Participating players</legend><label className="relative mb-3 block"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />  <input value={playerQuery} onChange={(event) => setPlayerQuery(event.target.value)} placeholder="Search assigned players" className="h-10 w-full rounded-lg border border-slate-200 pl-9 pr-3 text-sm" /></label>{scopedPlayers.length ? <div className="grid gap-2 sm:grid-cols-2">{scopedPlayers.map((player) => { const eligibility = playerEligibility(player.id); return <button type="button" key={player.id}   disabled={!eligibility.selectable} onClick={() => togglePlayer(player.id)} className={`flex items-center justify-between rounded-lg border px-3 py-2 text-left text-sm ${selectedIds.includes(player.id) ? "border-blue-300 bg-blue-50" : "border-slate-200"} disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-70`}><span><strong>{player.name}</strong>  <span className="block text-xs text-slate-500">{player.id} · {player.sport}</span></span><span className={`text-right text-xs font-semibold ${eligibility.label === "Eligible" ? "text-emerald-700" : eligibility.label === "Absent" ? "text-red-700" : "text-slate-600"}`}><span className="block">{sessionId ? eligibility.label : "Not Eligible"}</span>{sessionId && <span className="mt-0.5 block max-w-44 font-normal text-slate-500">{eligibility.reason}</span>}</span></button>; })}</div> : <div className="rounded-lg bg-slate-50 p-4 text-sm text-slate-500">  No assigned players found.</div>}</fieldset><div className="flex justify-end gap-3 border-t border-slate-100 pt-5"><button type="button" onClick={onCancel} className="h-10 rounded-lg border border-slate-200 px-4 text-sm font-semibold">Cancel</button><button type="submit" className="h-10 rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white">Review match</button></div></form></Modal>;
 }
 
 function Info({ label, value }: { label: string; value: string }) {

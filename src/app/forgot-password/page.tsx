@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ForgotPasswordPanel } from "@/components/auth/ForgotPasswordPanel";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export default function ForgotPasswordPage() {
   return (
@@ -17,7 +18,7 @@ export default function ForgotPasswordPage() {
           />
           <div className="relative flex h-full flex-col justify-between p-5 sm:p-8 lg:p-10 xl:p-14">
             <Link href="/" className="hidden items-center gap-3 text-white lg:flex" aria-label="Academy Desk home">
-              <span className="grid h-11 w-11 place-items-center rounded-xl bg-[#2563eb] text-sm font-black">AD</span>
+              <BrandLogo size={44} priority />
               <span>
                 <span className="block font-semibold">Academy Desk</span>
                 <span className="block text-[10px] uppercase tracking-[0.18em] text-slate-400">Sports management</span>
