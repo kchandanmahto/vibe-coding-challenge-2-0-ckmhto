@@ -2,7 +2,16 @@ import Link from "next/link";
 import { ResetPasswordPanel } from "@/components/auth/ResetPasswordPanel";
 import { BrandLogo } from "@/components/BrandLogo";
 
-export default function ResetPasswordPage() {
+export const instant = false;
+
+export default async function ResetPasswordPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ token?: string | string[] }>;
+}) {
+  const params = await searchParams;
+  const token = Array.isArray(params.token) ? params.token[0] : params.token;
+
   return (
     <main className="min-h-screen bg-white">
       <div className="grid min-h-screen lg:grid-cols-[1.08fr_.92fr]">
@@ -40,7 +49,7 @@ export default function ResetPasswordPage() {
             </div>
           </div>
         </section>
-        <ResetPasswordPanel />
+        <ResetPasswordPanel token={token ?? ""} />
       </div>
     </main>
   );

@@ -33,10 +33,23 @@ export function ForgotPasswordPanel() {
 
     setErrors({});
     setIsLoading(true);
-    await new Promise((resolve) => window.setTimeout(resolve, 700));
-    setIsLoading(false);
-
-    setIsPreviewSuccess(true);
+    try {
+      const response = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: normalizedEmail }),
+      });
+      if (!response.ok) {
+        throw new Error("Request failed");
+      }
+      setIsPreviewSuccess(true);
+    } catch {
+      setErrors({
+        form: "Unable to process the request right now. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -53,14 +66,11 @@ export function ForgotPasswordPanel() {
         {isPreviewSuccess ? (
           <div aria-live="polite">
             <div className="grid h-14 w-14 place-items-center rounded-full bg-emerald-50 text-2xl text-emerald-600" aria-hidden="true">✓</div>
-            <p className="mt-6 text-sm font-semibold text-[#2563eb]">UI preview complete</p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">Reset request ready</h1>
+            <p className="mt-6 text-sm font-semibold text-[#2563eb]">Request received</p>
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">Check your email</h1>
             <p className="mt-4 text-sm leading-7 text-slate-500">
-              This confirms the frontend success state only. No password reset email was sent and no backend request was made.
+              If an eligible account exists for that email, a password reset link will be sent.
             </p>
-            <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-              Requested for <span className="break-all font-semibold text-slate-800">{email.trim()}</span>
-            </div>
             <Link href="/login" className="mt-7 flex h-12 items-center justify-center rounded-lg bg-[#2563eb] text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500">
               Back to Login
             </Link>
@@ -106,7 +116,7 @@ export function ForgotPasswordPanel() {
 
               <button type="submit" disabled={isLoading} aria-busy={isLoading} className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#2563eb] text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-70">
                 {isLoading && <span aria-hidden="true" className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
-                {isLoading ? "Preparing preview..." : "Send Reset Link"}
+                {isLoading ? "Sending..." : "Send Reset Link"}
               </button>
             </form>
 

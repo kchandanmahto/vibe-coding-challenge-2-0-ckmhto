@@ -302,3 +302,34 @@ If a security incident occurs:
 
 **Document Status:** Initial Security Baseline
 **Project:** Academy Desk
+## 21. Distributed Rate Limiting (Phase 1, Task 9)
+
+Academy Desk uses Upstash Redis for distributed rate limiting across serverless instances.
+
+Policies:
+- Login (email): 20 requests per hour (fail open on Upstash outage).
+- Login (IP): 5 requests per 15 minutes (fail open).
+- Forgot password (IP): 5 requests per hour (fail closed).
+- Forgot password (email): 3 requests per hour (fail closed).
+- Reset password (IP): 10 requests per hour (fail closed).
+- Reset password (token): 5 requests per 15 minutes (fail closed).
+
+Identifiers are HMAC-SHA256 hashed with `RATE_LIMIT_KEY_SECRET` before being used as Redis keys. Raw emails, IPs and reset tokens are never stored in Redis.
+
+IP extraction trusts only Vercel-provided headers (`x-vercel-forwarded-for`, `x-forwarded-for`, `x-real-ip`) and validates them as IP addresses. Invalid values fall back to identifier-only limits.
+
+Login limits are enforced inside the Auth.js `authorize()` flow (post-CSRF). No separate middleware or proxy is used. Auth.js CSRF validation remains authoritative.
+
+Forgot-password and reset-password routes return HTTP 429 with `Retry-After` on limit violations while keeping responses generic to avoid account enumeration.
+
+Failure behavior:
+- Login: fail open (availability first).
+- Forgot password: fail closed.
+- Reset password: fail closed.
+
+Known limitations:
+- Upstash timeout (2 seconds) returns success=true from the SDK; fail-closed operations treat a timeout as a denial.
+- `Promise.race` cannot cancel the underlying Upstash request; late increments may occur.
+- Auth.js cannot emit HTTP 429 from `authorize()`; login over-limit attempts return a generic failed-login result.
+- Timing differences in forgot-password may reveal account existence; mitigations are best-effort.
+

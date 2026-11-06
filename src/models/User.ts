@@ -13,7 +13,9 @@ export interface IUser {
   passwordHash?: string;
   role: "HEAD_COACH" | "COACH" | "SCOUT" | "PLAYER";
   status: "ACTIVE" | "INACTIVE" | "SUSPENDED";
+  authSessionVersion: number;
   emailVerified?: Date;
+  googleId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -59,8 +61,25 @@ const userSchema = new Schema<IUser>(
       required: true,
       index: true,
     },
+    authSessionVersion: {
+      type: Number,
+      default: 0,
+      required: true,
+      min: 0,
+      validate: {
+        validator: Number.isInteger,
+        message: "Session version must be a non-negative integer",
+      },
+    },
     emailVerified: {
       type: Date,
+    },
+    googleId: {
+      type: String,
+      trim: true,
+      unique: true,
+      sparse: true,
+      select: false,
     },
   },
   { timestamps: true },

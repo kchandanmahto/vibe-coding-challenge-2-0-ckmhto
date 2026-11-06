@@ -10,7 +10,7 @@ interface ResetPasswordErrors {
   form?: string;
 }
 
-export function ResetPasswordPanel() {
+export function ResetPasswordPanel({ token }: { token: string }) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -46,10 +46,24 @@ export function ResetPasswordPanel() {
     setIsLoading(true);
 
     try {
-      await new Promise((resolve) => window.setTimeout(resolve, 700));
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, password }),
+      });
+      const result = await response.json().catch(() => null) as
+        | { message?: string }
+        | null;
+
+      if (!response.ok) {
+        setErrors({
+          form: result?.message ?? "This reset link is invalid or has expired.",
+        });
+        return;
+      }
       setIsPreviewSuccess(true);
     } catch {
-      setErrors({ form: "The preview could not be completed. Please try again." });
+      setErrors({ form: "Unable to reset the password. Please try again." });
     } finally {
       setIsLoading(false);
     }
@@ -66,13 +80,24 @@ export function ResetPasswordPanel() {
           </span>
         </Link>
 
-        {isPreviewSuccess ? (
+        {!token ? (
+          <div aria-live="polite">
+            <p className="text-sm font-semibold text-red-600">Invalid reset link</p>
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">Request a new link</h1>
+            <p className="mt-4 text-sm leading-7 text-slate-500">
+              This reset link is missing, invalid, or has expired.
+            </p>
+            <Link href="/forgot-password" className="mt-7 flex h-12 items-center justify-center rounded-lg bg-[#2563eb] text-sm font-semibold text-white">
+              Request New Reset Link
+            </Link>
+          </div>
+        ) : isPreviewSuccess ? (
           <div aria-live="polite">
             <div className="grid h-14 w-14 place-items-center rounded-full bg-emerald-50 text-2xl text-emerald-600" aria-hidden="true">✓</div>
-            <p className="mt-6 text-sm font-semibold text-[#2563eb]">UI preview complete</p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">New password ready</h1>
+            <p className="mt-6 text-sm font-semibold text-[#2563eb]">Password updated</p>
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">Password reset complete</h1>
             <p className="mt-4 text-sm leading-7 text-slate-500">
-              This confirms the frontend success state only. No password was changed and no reset-token request was sent.
+              Your password has been changed. Sign in with your new password.
             </p>
             <Link href="/login" className="mt-7 flex h-12 items-center justify-center rounded-lg bg-[#2563eb] text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500">
               Back to Login
@@ -135,7 +160,7 @@ export function ResetPasswordPanel() {
 
               <button type="submit" disabled={isLoading} aria-busy={isLoading} className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#2563eb] text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-70">
                 {isLoading && <span aria-hidden="true" className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
-                {isLoading ? "Preparing preview..." : "Reset Password"}
+                {isLoading ? "Resetting..." : "Reset Password"}
               </button>
             </form>
 

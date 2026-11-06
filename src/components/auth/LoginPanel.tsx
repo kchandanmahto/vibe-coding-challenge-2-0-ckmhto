@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import { getSession, signIn } from "next-auth/react";
 import { BrandLogo } from "@/components/BrandLogo";
 
 interface LoginErrors {
@@ -13,10 +14,36 @@ interface LoginErrors {
 export function LoginPanel() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [remember, setRemember] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<LoginErrors>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  useEffect(() => {
+    const error = new URLSearchParams(window.location.search).get("error");
+    if (error) {
+      const timeout = window.setTimeout(() => {
+        setErrors({
+          form: "Google sign-in was cancelled or the account is not authorized.",
+        });
+      }, 0);
+      return () => window.clearTimeout(timeout);
+    }
+  }, []);
+
+  async function handleGoogleSignIn() {
+    if (isLoading || isGoogleLoading) {
+      return;
+    }
+    setErrors({});
+    setIsGoogleLoading(true);
+    try {
+      await signIn("google", { redirectTo: "/login", redirect: true });
+    } catch {
+      setErrors({ form: "Google sign-in could not be completed. Please try again." });
+      setIsGoogleLoading(false);
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -37,9 +64,38 @@ export function LoginPanel() {
 
     if (Object.keys(nextErrors).length === 0) {
       setIsLoading(true);
-      await new Promise((resolve) => window.setTimeout(resolve, 700));
-      setIsLoading(false);
-      nextErrors.form = "Sign in is temporarily unavailable because authentication is not connected yet.";
+      try {
+        const result = await signIn("credentials", {
+          email: normalizedEmail,
+          password,
+          redirect: false,
+        });
+
+        if (!result.ok) {
+          nextErrors.form =
+            "Unable to sign in. Check your email and password, or contact your academy administrator.";
+        } else {
+          const session = await getSession();
+          const role = session?.user?.role;
+          const destinations = {
+            HEAD_COACH: "/head-coach",
+            COACH: "/coach",
+            PLAYER: "/player",
+            SCOUT: "/scout",
+          } as const;
+
+          if (role && role in destinations) {
+            window.location.assign(destinations[role as keyof typeof destinations]);
+            return;
+          }
+
+          nextErrors.form = "Sign in could not be completed. Please try again.";
+        }
+      } catch {
+        nextErrors.form = "Network or server error. Please try again.";
+      } finally {
+        setIsLoading(false);
+      }
     }
 
     setErrors(nextErrors);
@@ -119,16 +175,27 @@ export function LoginPanel() {
             {errors.password && <p id="password-error" className="mt-2 text-xs text-red-600">{errors.password}</p>}
           </div>
 
-          <label className="flex cursor-pointer items-center gap-3 text-sm text-slate-600">
-            <input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} className="h-4 w-4 rounded border-slate-300 accent-[#2563eb]" />
-            Remember me on this device
-          </label>
-
           <button type="submit" disabled={isLoading} aria-busy={isLoading} className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#2563eb] text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-70">
             {isLoading && <span aria-hidden="true" className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
             {isLoading ? "Signing in..." : "Sign in"}
           </button>
         </form>
+
+        <div className="mt-5 flex items-center gap-3" aria-hidden="true">
+          <span className="h-px flex-1 bg-slate-200" />
+          <span className="text-xs font-medium text-slate-400">or</span>
+          <span className="h-px flex-1 bg-slate-200" />
+        </div>
+        <button
+          type="button"
+          onClick={handleGoogleSignIn}
+          disabled={isLoading || isGoogleLoading}
+          aria-busy={isGoogleLoading}
+          className="mt-5 flex h-12 w-full items-center justify-center gap-3 rounded-lg border border-slate-300 bg-white text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          <span aria-hidden="true" className="text-lg font-bold text-[#4285f4]">G</span>
+          {isGoogleLoading ? "Connecting to Google..." : "Continue with Google"}
+        </button>
 
         <p className="mt-8 text-center text-xs text-slate-400">Secure access for Academy Desk teams</p>
       </div>

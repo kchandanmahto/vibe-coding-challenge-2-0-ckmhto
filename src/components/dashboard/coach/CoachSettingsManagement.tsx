@@ -5,6 +5,7 @@ import { Eye, EyeOff, LockKeyhole, X } from "lucide-react";
 import { DashboardShell } from "../DashboardShell";
 import { LoadingState, PageHeader } from "../DashboardUI";
 import { Panel, StatusBadge } from "../Dashboard";
+import { LogoutButton } from "@/components/auth/LogoutButton";
 
 const coachAccount = {
   id: "CCH-1001",
@@ -139,14 +140,14 @@ export function CoachSettingsManagement() {
 
           <Panel title="Security">
             <form onSubmit={validatePassword} className="p-5">
-              <div className="mb-4 flex items-start gap-3 rounded-lg border border-blue-100 bg-blue-50 p-4"><LockKeyhole className="mt-0.5 h-5 w-5 text-blue-600" /><div><p className="text-sm font-semibold text-blue-900">Preview-only security actions</p><p className="mt-1 text-xs leading-5 text-blue-700">Password validation runs locally. No password is sent, stored or changed, and logout is not implemented.</p></div></div>
+              <div className="mb-4 flex items-start gap-3 rounded-lg border border-blue-100 bg-blue-50 p-4"><LockKeyhole className="mt-0.5 h-5 w-5 text-blue-600" /><div><p className="text-sm font-semibold text-blue-900">Security actions</p><p className="mt-1 text-xs leading-5 text-blue-700">Password change validation remains a preview. No password is sent, stored or changed.</p></div></div>
               <div className="grid gap-4 md:grid-cols-3">
                 {(["current", "next", "confirm"] as const).map((field) => {
                   const label = field === "current" ? "Current password" : field === "next" ? "New password" : "Confirm new password";
                   return <label key={field} className="text-sm font-medium text-slate-700">{label}<div className="relative"><input type={showPasswords ? "text" : "password"} value={password[field]} onChange={(event) => setPassword((current) => ({ ...current, [field]: event.target.value }))} className={`${fieldClass} pr-11`} /><button type="button" onClick={() => setShowPasswords((current) => !current)} aria-label={showPasswords ? "Hide passwords" : "Show passwords"} className="absolute bottom-0 right-0 grid h-11 w-11 place-items-center text-slate-400">{showPasswords ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div></label>;
                 })}
               </div>
-              <div className="mt-4 flex flex-wrap justify-end gap-2"><button type="button" onClick={() => notify("Logout is unavailable in this frontend preview.")} className="h-10 rounded-lg border border-slate-200 px-4 text-sm font-semibold text-slate-700">Preview logout</button><button type="submit" className="h-10 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white">Validate password change</button></div>
+              <div className="mt-4 flex flex-wrap justify-end gap-2"><LogoutButton className="h-10 rounded-lg border border-slate-200 px-4 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-70" /><button type="submit" className="h-10 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white">Validate password change</button></div>
             </form>
           </Panel>
 

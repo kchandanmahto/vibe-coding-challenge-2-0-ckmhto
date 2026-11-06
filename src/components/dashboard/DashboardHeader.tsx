@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Icon } from "./Icon";
 import type { DashboardRole } from "./DashboardNavigation";
+import { LogoutButton } from "@/components/auth/LogoutButton";
 
 const roleUsers: Record<DashboardRole, { name: string; initials: string }> = {
   "head-coach": { name: "Raj Kumar", initials: "RK" },
@@ -44,6 +45,7 @@ export function UserProfileDropdown({ role }: { role: DashboardRole }) {
         <p className="px-3 py-2 text-xs text-slate-500">Mock profile</p>
         <Link href={`/${role}`} className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">View profile</Link>
         <Link href="/" className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">Academy Desk home</Link>
+        <LogoutButton className="mt-1 block w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-70" />
       </div>
     </details>
   );

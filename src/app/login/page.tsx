@@ -1,8 +1,24 @@
 import { LoginPanel } from "@/components/auth/LoginPanel";
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
+import { redirect } from "next/navigation";
+import { getValidatedSession } from "@/server/auth/session";
 
-export default function LoginPage() {
+export const instant = false;
+
+const roleDestinations = {
+  HEAD_COACH: "/head-coach",
+  COACH: "/coach",
+  PLAYER: "/player",
+  SCOUT: "/scout",
+} as const;
+
+export default async function LoginPage() {
+  const session = await getValidatedSession();
+  if (session) {
+    redirect(roleDestinations[session.user.role]);
+  }
+
   return (
     <main className="min-h-screen bg-white">
       <div className="grid min-h-screen lg:grid-cols-[1.08fr_.92fr]">
