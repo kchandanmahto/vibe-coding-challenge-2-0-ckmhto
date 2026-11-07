@@ -41,7 +41,12 @@ export async function authorizeGoogleAccount({
     const user = await User.findOne({ email })
       .select("+googleId")
       .lean();
-    if (!user || user.status !== "ACTIVE" || !user.emailVerified) {
+    if (
+      !user ||
+      user.status !== "ACTIVE" ||
+      !user.emailVerified ||
+      (user.role === "PLAYER" && user.passwordSetupCompleted === false)
+    ) {
       return false;
     }
 

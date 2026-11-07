@@ -1,10 +1,10 @@
+
 import { PublicNavbar } from "@/components/public/PublicNavbar";
 import {
   AboutSection,
   ContactSection,
-  FeaturesSection,
+  GallerySection,
   Hero,
-  HowItWorks,
   RoleBenefits,
   SportsSection,
 } from "@/components/public/LandingSections";
@@ -14,15 +14,16 @@ export default function Home() {
   return (
     <>
       <PublicNavbar />
+
       <main>
         <Hero />
         <SportsSection />
-        <FeaturesSection />
-        <HowItWorks />
         <RoleBenefits />
         <AboutSection />
+        <GallerySection />
         <ContactSection />
       </main>
+
       <PublicFooter />
     </>
   );

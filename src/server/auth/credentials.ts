@@ -74,7 +74,11 @@ export async function authorizeCredentials(
       .select("+passwordHash")
       .lean();
 
-    if (!user || !user.passwordHash || user.status !== "ACTIVE") {
+    if (
+      !user ||
+      !user.passwordHash ||
+      user.status !== "ACTIVE" ||
+      (user.role === "PLAYER" && user.passwordSetupCompleted === false)) {
       return null;
     }
 
@@ -94,7 +98,8 @@ export async function authorizeCredentials(
       academyId: String(user.academyId),
       status: user.status,
     };
-  } catch {
+  } catch (error) {
+    console.error("[CREDENTIALS LOGIN ERROR]", error);
     return null;
   }
 }

@@ -121,7 +121,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       try {
         await connectDB();
         const databaseUser = await User.findById(userId).lean();
-        if (!databaseUser || databaseUser.status !== "ACTIVE") {
+        if (
+          !databaseUser ||
+          databaseUser.status !== "ACTIVE" ||
+          (databaseUser.role === "PLAYER" &&
+            databaseUser.passwordSetupCompleted === false)
+        ) {
           return { ...token, invalid: true };
         }
 

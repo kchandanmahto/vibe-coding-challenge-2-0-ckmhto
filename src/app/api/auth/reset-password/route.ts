@@ -114,7 +114,10 @@ export async function POST(request: Request) {
             status: "ACTIVE",
           },
           {
-            $set: { passwordHash },
+            $set: {
+              passwordHash,
+              passwordSetupCompleted: true,
+            },
             $inc: { authSessionVersion: 1 },
           },
           { new: true, session },

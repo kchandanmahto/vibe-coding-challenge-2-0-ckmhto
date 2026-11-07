@@ -30,6 +30,8 @@ export async function getValidatedSession(): Promise<SafeAuthenticatedSession | 
     if (
       !databaseUser ||
       databaseUser.status !== "ACTIVE" ||
+      (databaseUser.role === "PLAYER" &&
+        databaseUser.passwordSetupCompleted === false) ||
       typeof sessionUser.academyId !== "string" ||
       typeof sessionUser.role !== "string" ||
       sessionUser.academyId !== String(databaseUser.academyId) ||
