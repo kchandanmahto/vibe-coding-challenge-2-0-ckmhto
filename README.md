@@ -1,8 +1,14 @@
-# 🏆 Academy Desk
+﻿# ðŸ† Academy Desk
 
 ### Smart Sports Academy Management System
 
 **One Platform. Every Sport. Smarter Academy Management.**
+
+## 🌐 Live Deployment
+
+**Vercel URL:** https://vibe-coding-challenge-2-0-ckmhto-so.vercel.app/
+
+**Login:** https://vibe-coding-challenge-2-0-ckmhto-so.vercel.app/login
 
 Academy Desk is a modern, responsive sports academy management platform built to simplify and organize daily academy operations.
 
@@ -12,28 +18,28 @@ Developed for **Dumka Sports Academy**, Academy Desk aims to make sports managem
 
 ---
 
-## 🌟 Key Features
+## ðŸŒŸ Key Features
 
-### 🏫 Academy Management
+### ðŸ« Academy Management
 - Centralized sports academy management.
 - Role-based dashboards and access control.
 - Head Coach and Coach management.
 - Player and Scout management.
 - Multiple sports and training program management.
 
-### 📅 Practice & Attendance
+### ðŸ“… Practice & Attendance
 - Create and manage practice sessions.
 - Record player attendance.
 - Maintain attendance history.
 - Monitor daily training activities.
 
-### 🏅 Match & Performance Management
+### ðŸ… Match & Performance Management
 - Maintain match records.
 - Track player scores and performance.
 - Monitor player participation.
 - Calculate player readiness using available records.
 
-### 👥 Role-Based Workspaces
+### ðŸ‘¥ Role-Based Workspaces
 
 | Role | Responsibilities |
 |---|---|
@@ -42,7 +48,7 @@ Developed for **Dumka Sports Academy**, Academy Desk aims to make sports managem
 | Player | Personal profile, attendance and performance records |
 | Scout | Player discovery and performance review |
 
-### 📱 Modern User Experience
+### ðŸ“± Modern User Experience
 - Responsive interface for mobile, tablet and desktop.
 - Modern and clean design.
 - Dedicated dashboards for different user roles.
@@ -50,13 +56,13 @@ Developed for **Dumka Sports Academy**, Academy Desk aims to make sports managem
 
 ---
 
-## 🔐 Hackathon Demo Login
+## ðŸ” Hackathon Demo Login
 
 **All hackathon participants and judges can use these demo accounts to explore the application.**
 
 Demo URL:
 
-`http://localhost:3000/login`
+`https://vibe-coding-challenge-2-0-ckmhto-so.vercel.app/login`
 
 For the deployed demo, use the website's `/login` route.
 
@@ -107,7 +113,7 @@ For the deployed demo, use the website's `/login` route.
 
 ---
 
-## 🛠️ Technology Stack
+## ðŸ› ï¸ Technology Stack
 
 | Technology | Purpose |
 |---|---|
@@ -122,7 +128,7 @@ For the deployed demo, use the website's `/login` route.
 
 ---
 
-## ⚙️ Installation & Setup
+## âš™ï¸ Installation & Setup
 
 ### Prerequisites
 
@@ -134,7 +140,7 @@ For the deployed demo, use the website's `/login` route.
 ### Step 1: Clone the Repository
 
 ```bash
-git clone YOUR_REPOSITORY_URL
+git clone https://github.com/kchandanmahto/vibe-coding-challenge-2-0-ckmhto.git
 cd academy-desk
 ```
 
@@ -187,36 +193,36 @@ Visit:
 
 ---
 
-## 📁 Project Structure
+## ðŸ“ Project Structure
 
 ```text
 academy-desk/
-│
-├── public/
-│
-├── src/
-│   ├── app/
-│   │   ├── api/
-│   │   ├── login/
-│   │   └── page.tsx
-│   │
-│   ├── components/
-│   ├── lib/
-│   ├── models/
-│   └── types/
-│
-├── .env.local
-├── .gitignore
-├── package.json
-├── tsconfig.json
-└── README.md
+â”‚
+â”œâ”€â”€ public/
+â”‚
+â”œâ”€â”€ src/
+â”‚   â”œâ”€â”€ app/
+â”‚   â”‚   â”œâ”€â”€ api/
+â”‚   â”‚   â”œâ”€â”€ login/
+â”‚   â”‚   â””â”€â”€ page.tsx
+â”‚   â”‚
+â”‚   â”œâ”€â”€ components/
+â”‚   â”œâ”€â”€ lib/
+â”‚   â”œâ”€â”€ models/
+â”‚   â””â”€â”€ types/
+â”‚
+â”œâ”€â”€ .env.local
+â”œâ”€â”€ .gitignore
+â”œâ”€â”€ package.json
+â”œâ”€â”€ tsconfig.json
+â””â”€â”€ README.md
 ```
 
 *The structure above is a high-level overview. Refer to the repository for the complete implementation.*
 
 ---
 
-## 🔒 Security & Access Control
+## ðŸ”’ Security & Access Control
 
 - Role-based access to application features.
 - Protected application routes.
@@ -228,7 +234,7 @@ Demo accounts are provided for hackathon evaluation and testing.
 
 ---
 
-## 🎯 Project Vision
+## ðŸŽ¯ Project Vision
 
 Our vision is to make sports academy management easier through technology.
 
@@ -238,15 +244,15 @@ We aim to help sports academies focus more on player development and less on man
 
 ---
 
-## 🚧 Project Status
+## ðŸš§ Project Status
 
-**Under Active Development 🚀**
+**Under Active Development ðŸš€**
 
 Academy Desk is being continuously improved. Features, workflows, and user experiences are evolving as development progresses.
 
 ---
 
 
-**Built with ❤️ for the future of sports management.**
+**Built with â¤ï¸ for the future of sports management.**
 
-© 2026 Academy Desk. All rights reserved.
+Â© 2026 Academy Desk. All rights reserved.
